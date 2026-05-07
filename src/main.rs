@@ -20,7 +20,7 @@ fn main() {
                 0.0,
             );
 
-            write_color(&out, pixel_color);
+            write_color(&out, pixel_color); // interior mutability of Stdout, so out no need to be mut
         }
     }
     eprintln!("\rDone");
