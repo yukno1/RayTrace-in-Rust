@@ -1,7 +1,7 @@
 pub struct Color {
-    r: f64,
-    g: f64,
-    b: f64,
+    pub r: f64,
+    pub g: f64,
+    pub b: f64,
 }
 
 impl Color {
@@ -10,10 +10,10 @@ impl Color {
     }
 }
 
-pub fn write_color(out: (), pixel_color: Color) {
+pub fn write_color(mut out: impl std::io::Write, pixel_color: Color) {
     let rbyte = (255.999 * pixel_color.r) as usize;
     let gbyte = (255.999 * pixel_color.g) as usize;
     let bbyte = (255.999 * pixel_color.b) as usize;
 
-    println!("{rbyte} {gbyte} {bbyte}");
+    writeln!(out, "{rbyte} {gbyte} {bbyte}").unwrap(); // assume it works, otherwise panic
 }
