@@ -1,10 +1,12 @@
 mod color;
 mod hittable;
+mod hittable_list;
 mod ray;
 mod sphere;
 mod vec3;
 
 use crate::hittable::Hittable;
+use crate::hittable_list::HittableList;
 use crate::sphere::Sphere;
 use crate::{color::*, ray::Ray, vec3::*};
 
@@ -23,11 +25,12 @@ use crate::{color::*, ray::Ray, vec3::*};
 // }
 
 fn ray_color(ray: Ray) -> Color {
-    let sphere = Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5);
-    let rec = sphere.hit(&ray, 0.0, 100.0);
+    let mut obj_list = HittableList::new();
+    obj_list.add(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5));
+    let rec = obj_list.hit(&ray, 0.0, 100.0);
     match rec {
         Some(rec) => {
-            let t = rec.t;
+            // let t = rec.t;
             // let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, &ray);
 
             // let n = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vec3();
