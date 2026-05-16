@@ -23,12 +23,17 @@ impl Hittable for Sphere {
 
         if discriminant < 0.0 {
             return None;
-        } else {
-            Some(HitRecord::new(
-                r.at(h - discriminant.sqrt() / a),
-                (r.origin - self.centre) / self.radius,
-                (h - discriminant.sqrt()) / a,
-            ))
         }
+        let sqrtd = discriminant.sqrt();
+        let mut root = (h - sqrtd) / a;
+        if root <= t_min || root >= t_max {
+            root = (h + sqrtd) / a;
+
+            if root <= t_min || root >= t_max {
+                return None;
+            }
+        }
+        let p = r.at(root);
+        Some(HitRecord::new(r, root, p, (p - self.centre) / self.radius))
     }
 }

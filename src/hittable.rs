@@ -2,14 +2,32 @@ use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
 
 pub struct HitRecord {
+    pub t: f64,
     pub p: Point3,
     pub normal: Vec3,
-    pub t: f64,
+    pub front_face: bool,
 }
 
 impl HitRecord {
-    pub fn new(p: Point3, normal: Vec3, t: f64) -> Self {
-        Self { p, normal, t }
+    pub fn new(r: &Ray, t: f64, p: Point3, normal: Vec3) -> Self {
+        let mut rec = Self {
+            t,
+            p,
+            normal,
+            front_face: false,
+        };
+        rec.set_face_normal(r);
+        rec
+    }
+
+    fn set_face_normal(&mut self, r: &Ray) {
+        // Sets the hit record normal vec
+        // assume normal is normalized
+        self.front_face = r.direction * self.normal < 0.0;
+
+        if !self.front_face {
+            self.normal *= -1.0;
+        }
     }
 }
 

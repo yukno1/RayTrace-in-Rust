@@ -4,32 +4,41 @@ mod ray;
 mod sphere;
 mod vec3;
 
+use crate::hittable::Hittable;
+use crate::sphere::Sphere;
 use crate::{color::*, ray::Ray, vec3::*};
 
-fn hit_sphere(centre: Point3, radius: f64, r: &Ray) -> f64 {
-    let oc = centre - r.origin;
-    let a = r.direction * r.direction;
-    let h = r.direction * oc;
-    let c = oc * oc - radius * radius;
-    let discriminant = h * h - a * c;
+// fn hit_sphere(centre: Point3, radius: f64, r: &Ray) -> f64 {
+//     let oc = centre - r.origin;
+//     let a = r.direction * r.direction;
+//     let h = r.direction * oc;
+//     let c = oc * oc - radius * radius;
+//     let discriminant = h * h - a * c;
 
-    if discriminant < 0.0 {
-        return -1.0;
-    } else {
-        return (h - discriminant.sqrt()) / a;
-    }
-}
+//     if discriminant < 0.0 {
+//         return -1.0;
+//     } else {
+//         return (h - discriminant.sqrt()) / a;
+//     }
+// }
 
 fn ray_color(ray: Ray) -> Color {
-    let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, &ray);
-    if t > 0.0 {
-        let n = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vec3();
-        return 0.5 * Color::new(n.x + 1.0, n.y + 1.0, n.z + 1.0);
-    }
+    let sphere = Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5);
+    let rec = sphere.hit(&ray, 0.0, 100.0);
+    match rec {
+        Some(rec) => {
+            let t = rec.t;
+            // let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, &ray);
 
-    let unit_direction = ray.direction.unit_vec3();
-    let a = 0.5 * (unit_direction.y + 1.0);
-    (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+            // let n = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vec3();
+            return 0.5 * Color::new(rec.normal.x + 1.0, rec.normal.y + 1.0, rec.normal.z + 1.0);
+        }
+        None => {
+            let unit_direction = ray.direction.unit_vec3();
+            let a = 0.5 * (unit_direction.y + 1.0);
+            (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+        }
+    }
 }
 
 fn main() {
