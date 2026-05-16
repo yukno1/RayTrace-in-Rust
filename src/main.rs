@@ -1,39 +1,20 @@
 mod color;
 mod hittable;
 mod hittable_list;
+mod interval;
 mod ray;
 mod sphere;
 mod vec3;
 
 use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
+use crate::interval::Interval;
 use crate::sphere::Sphere;
 use crate::{color::*, ray::Ray, vec3::*};
 
-// fn hit_sphere(centre: Point3, radius: f64, r: &Ray) -> f64 {
-//     let oc = centre - r.origin;
-//     let a = r.direction * r.direction;
-//     let h = r.direction * oc;
-//     let c = oc * oc - radius * radius;
-//     let discriminant = h * h - a * c;
-
-//     if discriminant < 0.0 {
-//         return -1.0;
-//     } else {
-//         return (h - discriminant.sqrt()) / a;
-//     }
-// }
-
-fn ray_color(ray: Ray) -> Color {
-    let mut obj_list = HittableList::new();
-    obj_list.add(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5));
-    let rec = obj_list.hit(&ray, 0.0, 100.0);
-    match rec {
+fn ray_color(ray: &Ray, world: &impl Hittable) -> Color {
+    match world.hit(ray, Interval::new(0.0, f64::INFINITY)) {
         Some(rec) => {
-            // let t = rec.t;
-            // let t = hit_sphere(Point3::new(0.0, 0.0, -1.0), 0.5, &ray);
-
-            // let n = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vec3();
             return 0.5 * Color::new(rec.normal.x + 1.0, rec.normal.y + 1.0, rec.normal.z + 1.0);
         }
         None => {
@@ -50,6 +31,11 @@ fn main() {
     let image_width = 400;
     let mut image_height = (image_width as f64 / aspect_ratio) as usize;
     image_height = if image_height < 1 { 1 } else { image_height };
+
+    // world
+    let mut world = HittableList::new();
+    world.add(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5));
+    world.add(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0));
 
     // camera
     let focal_length = 1.0;
@@ -79,7 +65,7 @@ fn main() {
                 pixel100_loc + (i as f64 * pixel_delta_u) + (j as f64 * pixel_delta_v);
             let ray_direction = pixel_centre - camera_centre;
             let r = Ray::new(camera_centre, ray_direction);
-            let pixel_color = ray_color(r);
+            let pixel_color = ray_color(&r, &world);
 
             write_color(&out, pixel_color); // interior mutability of Stdout, so out no need to be mut
         }
