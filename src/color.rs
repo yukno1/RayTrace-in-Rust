@@ -48,12 +48,24 @@ impl Mul<Color> for f64 {
     }
 }
 
-const INTENSITY: Interval = Interval::new(0.0, 0.999);
+pub fn linear_to_gemma(linear_component: f64) -> f64 {
+    if linear_component > 0.0 {
+        linear_component.sqrt()
+    } else {
+        0.0
+    }
+}
 
 pub fn write_color(mut out: impl std::io::Write, pixel_color: Color) {
-    let rbyte = (256.0 * INTENSITY.clamp(pixel_color.r)) as usize;
-    let gbyte = (256.0 * INTENSITY.clamp(pixel_color.g)) as usize;
-    let bbyte = (256.0 * INTENSITY.clamp(pixel_color.b)) as usize;
+    // apply a linear to gamme transform for gamma 2
+    let r = linear_to_gemma(pixel_color.r);
+    let g = linear_to_gemma(pixel_color.g);
+    let b = linear_to_gemma(pixel_color.b);
+
+    const INTENSITY: Interval = Interval::new(0.0, 0.999);
+    let rbyte = (256.0 * INTENSITY.clamp(r)) as usize;
+    let gbyte = (256.0 * INTENSITY.clamp(g)) as usize;
+    let bbyte = (256.0 * INTENSITY.clamp(b)) as usize;
 
     writeln!(out, "{rbyte} {gbyte} {bbyte}").unwrap(); // assume it works, otherwise panic
 }

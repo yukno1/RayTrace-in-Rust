@@ -109,7 +109,7 @@ impl Camera {
         // 1e-3 to avoid shadow acne
         match world.hit(ray, Interval::new(1e-3, f64::INFINITY)) {
             Some(rec) => {
-                let direction = Vec3::random_on_hemisphere(rec.normal);
+                let direction = rec.normal + Vec3::rand_unit_vec3();
                 return 0.5 * self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
             }
             None => {
