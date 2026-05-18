@@ -1,9 +1,11 @@
-use crate::color::{Color, write_color};
-use crate::hittable::Hittable;
-use crate::interval::Interval;
-use crate::ray::Ray;
-use crate::utils::rand_f64;
-use crate::vec3::{Point3, Vec3};
+use crate::{
+    color::{Color, write_color},
+    hittable::Hittable,
+    interval::Interval,
+    ray::Ray,
+    utils::rand_f64,
+    vec3::{Point3, Vec3},
+};
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -19,7 +21,7 @@ pub struct Camera {
     pixel_delta_v: Vec3,
 }
 
-impl Camera {
+impl<'a> Camera {
     // construct with default values
     pub fn new() -> Self {
         // image
@@ -61,7 +63,7 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, world: &impl Hittable) {
+    pub fn render(&self, world: &'a impl Hittable) {
         let out = std::io::stdout();
         // render
         println!(
@@ -102,7 +104,7 @@ impl Camera {
         Vec3::new(rand_f64(), rand_f64(), 0.0)
     }
 
-    fn ray_color(&self, ray: &Ray, depth: usize, world: &impl Hittable) -> Color {
+    fn ray_color(&self, ray: &Ray, depth: usize, world: &'a impl Hittable) -> Color {
         if depth <= 0 {
             return Color::new(0.0, 0.0, 0.0);
         }

@@ -1,21 +1,27 @@
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-pub struct Sphere {
-    pub centre: Vec3,
-    pub radius: f64,
+pub struct Sphere<'a> {
+    centre: Vec3,
+    radius: f64,
+    mat: Box<dyn Material + 'a>,
 }
 
-impl Sphere {
-    pub fn new(centre: Vec3, radius: f64) -> Self {
-        Self { centre, radius }
+impl<'a> Sphere<'a> {
+    pub fn new(centre: Vec3, radius: f64, mat: impl Material + 'a) -> Self {
+        Self {
+            centre,
+            radius,
+            mat: Box::new(mat),
+        }
     }
 }
 
-impl Hittable for Sphere {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
+impl<'a> Hittable for Sphere<'a> {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'_>> {
         let oc = self.centre - r.origin;
         let a = r.direction * r.direction;
         let h = r.direction * oc;
@@ -35,6 +41,20 @@ impl Hittable for Sphere {
             }
         }
         let p = r.at(root);
-        Some(HitRecord::new(r, root, p, (p - self.centre) / self.radius))
+        Some(HitRecord::new(
+            r,
+            root,
+            p,
+            (p - self.centre) / self.radius,
+            &*self.mat,
+        ))
     }
 }
+
+// impl<'a> Material for Sphere<'a> {
+//     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+//         let mut attenuation = Color::new(1.0, 1.0, 1.0);
+//         let mut scattered = Ray::new(rec.p, Vec3::rand_unit_vec3());
+//         return Some((attenuation, scattered));
+//     }
+// }

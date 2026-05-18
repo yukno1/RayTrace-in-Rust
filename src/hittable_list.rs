@@ -20,7 +20,7 @@ impl<'a> HittableList<'a> {
 }
 
 impl<'a> Hittable for HittableList<'a> {
-    fn hit(&self, r: &Ray, mut ray_t: Interval) -> Option<HitRecord> {
+    fn hit(&self, r: &Ray, mut ray_t: Interval) -> Option<HitRecord<'_>> {
         let mut temp: Option<HitRecord> = None;
         for obj in self.objects.iter() {
             if let Some(rec) = obj.hit(r, ray_t) {

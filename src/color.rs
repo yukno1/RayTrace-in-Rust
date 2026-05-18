@@ -1,8 +1,8 @@
 use std::ops::*;
 
-use crate::interval::Interval;
-use crate::vec3::Vec3;
+use crate::{interval::Interval, vec3::Vec3};
 
+#[derive(Clone, Copy)]
 pub struct Color {
     pub r: f64,
     pub g: f64,
