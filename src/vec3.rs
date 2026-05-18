@@ -1,3 +1,4 @@
+use crate::utils::{rand_f64, rand_f64_range};
 use std::ops;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -28,8 +29,39 @@ impl Vec3 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
+    pub fn rand_vec3() -> Vec3 {
+        Vec3::new(rand_f64(), rand_f64(), rand_f64())
+    }
+
+    pub fn rand_range_vec3(min: f64, max: f64) -> Vec3 {
+        Vec3::new(
+            rand_f64_range(min, max),
+            rand_f64_range(min, max),
+            rand_f64_range(min, max),
+        )
+    }
+
     pub fn unit_vec3(&self) -> Vec3 {
         *self / self.len()
+    }
+
+    pub fn rand_unit_vec3() -> Vec3 {
+        loop {
+            let p = Vec3::rand_range_vec3(-1.0, 1.0);
+            if 1e-160 < p.len_sq() && p.len_sq() <= 1.0 {
+                return p / p.len();
+            }
+        }
+    }
+
+    pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
+        let on_unit_sphere = Vec3::rand_unit_vec3();
+
+        if on_unit_sphere * normal > 0.0 {
+            on_unit_sphere
+        } else {
+            -1.0 * on_unit_sphere
+        }
     }
 }
 
