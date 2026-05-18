@@ -13,6 +13,7 @@ impl<'a> HittableList<'a> {
         }
     }
 
+    // takes ownership of object
     pub fn add(&mut self, object: impl Hittable + 'a) {
         self.objects.push(Box::new(object));
     }

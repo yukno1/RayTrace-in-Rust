@@ -5,7 +5,7 @@ pub struct Interval {
 }
 
 impl Interval {
-    pub fn new(min: f64, max: f64) -> Self {
+    pub const fn new(min: f64, max: f64) -> Self {
         Self { min, max }
     }
 
@@ -19,5 +19,15 @@ impl Interval {
 
     pub fn surrounds(&self, other: &Self) -> bool {
         self.min <= other.min && other.max <= self.max
+    }
+
+    pub fn clamp(&self, x: f64) -> f64 {
+        if x < self.min {
+            self.min
+        } else if x > self.max {
+            self.max
+        } else {
+            x
+        }
     }
 }

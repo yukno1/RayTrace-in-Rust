@@ -1,5 +1,6 @@
 use std::ops::*;
 
+use crate::interval::Interval;
 use crate::vec3::Vec3;
 
 pub struct Color {
@@ -32,6 +33,14 @@ impl Add for Color {
     }
 }
 
+impl AddAssign for Color {
+    fn add_assign(&mut self, rhs: Self) {
+        self.r += rhs.r;
+        self.g += rhs.g;
+        self.b += rhs.b;
+    }
+}
+
 impl Mul<Color> for f64 {
     type Output = Color;
     fn mul(self, rhs: Color) -> Self::Output {
@@ -39,10 +48,12 @@ impl Mul<Color> for f64 {
     }
 }
 
+const INTENSITY: Interval = Interval::new(0.0, 0.999);
+
 pub fn write_color(mut out: impl std::io::Write, pixel_color: Color) {
-    let rbyte = (255.999 * pixel_color.r) as usize;
-    let gbyte = (255.999 * pixel_color.g) as usize;
-    let bbyte = (255.999 * pixel_color.b) as usize;
+    let rbyte = (256.0 * INTENSITY.clamp(pixel_color.r)) as usize;
+    let gbyte = (256.0 * INTENSITY.clamp(pixel_color.g)) as usize;
+    let bbyte = (256.0 * INTENSITY.clamp(pixel_color.b)) as usize;
 
     writeln!(out, "{rbyte} {gbyte} {bbyte}").unwrap(); // assume it works, otherwise panic
 }
