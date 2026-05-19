@@ -58,6 +58,15 @@ impl Vec3 {
         *self / self.len()
     }
 
+    pub fn rand_in_unit_disk() -> Vec3 {
+        loop {
+            let p = Vec3::new(rand_f64_range(-1.0, 1.0), rand_f64_range(-1.0, 1.0), 0.0);
+            if p.len_sq() < 1.0 {
+                return p;
+            }
+        }
+    }
+
     pub fn rand_unit_vec3() -> Vec3 {
         loop {
             let p = Vec3::rand_range_vec3(-1.0, 1.0);
