@@ -1,4 +1,4 @@
-use std::ops;
+use std::ops::{self, Index};
 
 use crate::utils::{rand_f64, rand_f64_range};
 
@@ -101,6 +101,18 @@ impl Vec3 {
         let r_out_parallel = -n * ((1.0 - r_out_perp.len_sq()).abs()).sqrt();
 
         return r_out_perp + r_out_parallel;
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f64;
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("index out of range"),
+        }
     }
 }
 
