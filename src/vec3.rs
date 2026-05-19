@@ -1,5 +1,6 @@
-use crate::utils::{rand_f64, rand_f64_range};
 use std::ops;
+
+use crate::utils::{rand_f64, rand_f64_range};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec3 {
@@ -71,6 +72,14 @@ impl Vec3 {
 
     pub fn reflect(&self, n: Vec3) -> Self {
         return *self - 2.0 * n * (*self * n);
+    }
+
+    pub fn refract(&self, n: Vec3, etai_over_etat: f64) -> Vec3 {
+        let cos_theta = (-*self * n).min(1.0);
+        let r_out_perp = etai_over_etat * (*self + cos_theta * n);
+        let r_out_parallel = -n * ((1.0 - r_out_perp.len_sq()).abs()).sqrt();
+
+        return r_out_perp + r_out_parallel;
     }
 }
 

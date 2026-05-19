@@ -13,7 +13,7 @@ use crate::{
     camera::Camera,
     color::Color,
     hittable_list::HittableList,
-    material::{Lambertian, Metal},
+    material::{Dielectric, Lambertian, Metal},
     sphere::Sphere,
     vec3::Point3,
 };
@@ -24,7 +24,7 @@ fn main() {
 
     let mat_ground = Lambertian::new(Color::new(0.8, 0.8, 0.0));
     let mat_centre = Lambertian::new(Color::new(0.1, 0.2, 0.5));
-    let mat_left = Metal::new(Color::new(0.8, 0.8, 0.8), 0.3);
+    let mat_left = Dielectric::new(1.5);
     let mat_right = Metal::new(Color::new(0.8, 0.6, 0.2), 1.0);
 
     world.add(Sphere::new(
