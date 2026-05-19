@@ -68,6 +68,10 @@ impl Vec3 {
         let s = 1e-8;
         return self.x.abs() < s && self.y.abs() < s && self.z.abs() < s;
     }
+
+    pub fn reflect(&self, n: Vec3) -> Self {
+        return *self - 2.0 * n * (*self * n);
+    }
 }
 
 impl ops::Add for Vec3 {

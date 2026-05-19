@@ -27,3 +27,23 @@ impl Material for Lambertian {
         return Some((attenuation, scattered));
     }
 }
+
+pub struct Metal {
+    albedo: Color,
+}
+
+impl Metal {
+    pub fn new(albedo: Color) -> Self {
+        Self { albedo }
+    }
+}
+
+impl Material for Metal {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+        let reflected = r_in.direction.reflect(rec.normal);
+
+        let scattered = Ray::new(rec.p, reflected);
+        let attenuation = self.albedo;
+        return Some((attenuation, scattered));
+    }
+}

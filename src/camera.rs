@@ -111,8 +111,10 @@ impl<'a> Camera {
         // 1e-3 to avoid shadow acne
         match world.hit(ray, Interval::new(1e-3, f64::INFINITY)) {
             Some(rec) => {
-                let direction = rec.normal + Vec3::rand_unit_vec3();
-                return 0.5 * self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
+                if let Some((attenuation, scattered)) = rec.mat.scatter(ray, &rec) {
+                    return attenuation * self.ray_color(&scattered, depth - 1, world);
+                }
+                return Color::new(0.0, 0.0, 0.0);
             }
             None => {
                 let unit_direction = ray.direction.unit_vec3();

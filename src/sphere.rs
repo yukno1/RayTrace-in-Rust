@@ -50,11 +50,3 @@ impl<'a> Hittable for Sphere<'a> {
         ))
     }
 }
-
-// impl<'a> Material for Sphere<'a> {
-//     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
-//         let mut attenuation = Color::new(1.0, 1.0, 1.0);
-//         let mut scattered = Ray::new(rec.p, Vec3::rand_unit_vec3());
-//         return Some((attenuation, scattered));
-//     }
-// }

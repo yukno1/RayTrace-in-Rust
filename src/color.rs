@@ -27,7 +27,7 @@ impl From<Vec3> for Color {
 }
 
 impl Add for Color {
-    type Output = Color;
+    type Output = Self;
     fn add(self, rhs: Color) -> Self::Output {
         Color::new(self.r + rhs.r, self.g + rhs.g, self.b + rhs.b)
     }
@@ -38,6 +38,14 @@ impl AddAssign for Color {
         self.r += rhs.r;
         self.g += rhs.g;
         self.b += rhs.b;
+    }
+}
+
+impl Mul for Color {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color::new(self.r * rhs.r, self.g * rhs.g, self.b * rhs.b)
     }
 }
 
