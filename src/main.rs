@@ -3,7 +3,7 @@ mod color;
 mod hittable;
 mod hittable_list;
 mod interval;
-mod material;
+mod materials;
 mod ray;
 mod sphere;
 mod utils;
@@ -13,7 +13,7 @@ use crate::{
     camera::Camera,
     color::Color,
     hittable_list::HittableList,
-    material::{Dielectric, Lambertian, Metal},
+    materials::{Dielectric, Lambertian, Metal},
     sphere::Sphere,
     utils::{rand_f64, rand_f64_range},
     vec3::{Point3, Vec3},

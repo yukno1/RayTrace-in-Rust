@@ -1,4 +1,4 @@
-use crate::{color::Color, hittable::HitRecord, material::Material, ray::Ray, utils::rand_f64};
+use crate::{color::Color, hittable::HitRecord, materials::Material, ray::Ray, utils::rand_f64};
 
 pub struct Dielectric {
     // Refractive index in vaccum or ait, or the ratio of the material's refractive index over the refractive index of enclosing media

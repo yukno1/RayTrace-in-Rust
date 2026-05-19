@@ -1,4 +1,4 @@
-use crate::{color::Color, hittable::HitRecord, material::Material, ray::Ray, vec3::Vec3};
+use crate::{color::Color, hittable::HitRecord, materials::Material, ray::Ray, vec3::Vec3};
 
 pub struct Metal {
     albedo: Color,
