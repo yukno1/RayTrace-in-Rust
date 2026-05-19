@@ -3,15 +3,16 @@ use crate::{
     hittable::Hittable,
     interval::Interval,
     ray::Ray,
-    utils::rand_f64,
+    utils::{degrees_to_radians, rand_f64},
     vec3::{Point3, Vec3},
 };
 
 pub struct Camera {
-    pub aspect_ratio: f64,
-    pub image_width: usize,
+    pub aspect_ratio: f64,  // 1.0
+    pub image_width: usize, // 400
     pub samples_per_pixel: usize,
     pub max_depth: usize,
+    pub vfov: f64,
 
     image_height: usize,
     pixel_samples_scale: f64,
@@ -32,18 +33,25 @@ impl<'a> Camera {
 
         let samples_per_pixel = 100;
 
-        // camera
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
-        let viewport_width = viewport_height * aspect_ratio;
         let centre = Point3::zero();
 
+        // Determine viewport dimensions
+        let vfov = 90.0;
+        let focal_length = 1.0;
+        let theta = degrees_to_radians(vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
+        let viewport_width = viewport_height * aspect_ratio;
+
+        // calculate the vectors across the horizontal and vertical viewport edges
         let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
         let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
 
+        // calculate the horizontal and vertical delta vectors from pixel to pixel
         let pixel_delta_u = viewport_u / image_width;
         let pixel_delta_v = viewport_v / image_height;
 
+        // calculate the location of the upper left pixel
         let viewport_upper_left =
             centre - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
@@ -53,6 +61,7 @@ impl<'a> Camera {
             image_width,
             samples_per_pixel,
             max_depth: 10,
+            vfov,
 
             image_height,
             pixel_samples_scale: 1.0 / (samples_per_pixel as f64),
