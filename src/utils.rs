@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use fastrand;
 
 pub fn degrees_to_radians(degrees: f64) -> f64 {
