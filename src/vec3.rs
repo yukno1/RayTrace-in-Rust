@@ -2,7 +2,7 @@ use std::ops;
 
 use crate::utils::{rand_f64, rand_f64_range};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -18,16 +18,28 @@ impl Vec3 {
         Self { x, y, z }
     }
 
+    #[inline]
     pub fn zero() -> Self {
         Self::new(0.0, 0.0, 0.0)
     }
 
+    #[inline]
     pub fn len(&self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
+    #[inline]
     pub fn len_sq(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
+    }
+
+    #[inline]
+    pub fn cross(&self, rhs: Vec3) -> Self {
+        Self {
+            x: self.y * rhs.z - self.z * rhs.y,
+            y: self.z * rhs.x - self.x * rhs.z,
+            z: self.x * rhs.y - self.y * rhs.x,
+        }
     }
 
     pub fn rand_vec3() -> Vec3 {
