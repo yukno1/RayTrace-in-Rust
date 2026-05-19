@@ -17,12 +17,13 @@ impl Lambertian {
 impl Material for Lambertian {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
         let mut scatter_direction = rec.normal + Vec3::rand_unit_vec3();
+
         // catch degenerate scatter direction
         if scatter_direction.near_zero() {
             scatter_direction = rec.normal;
         }
 
-        let scattered = Ray::new(rec.p, scatter_direction);
+        let scattered = Ray::new_with_time(rec.p, scatter_direction, r_in.time);
         let attenuation = self.albedo;
         return Some((attenuation, scattered));
     }
@@ -47,7 +48,7 @@ impl Material for Metal {
         let mut reflected = r_in.direction.reflect(rec.normal);
         reflected = reflected.unit_vec3() + (self.fuzz * Vec3::rand_unit_vec3());
 
-        let scattered = Ray::new(rec.p, reflected);
+        let scattered = Ray::new_with_time(rec.p, reflected, r_in.time);
         let attenuation = self.albedo;
         if scattered.direction * rec.normal > 0.0 {
             Some((attenuation, scattered))
@@ -84,17 +85,18 @@ impl Material for Dielectric {
             self.refraction_idx
         };
 
-        let cos_theta = (-r_in.direction * rec.normal).min(1.0);
+        let unit_direction = r_in.direction.unit_vec3();
+        let cos_theta = (-unit_direction * rec.normal).min(1.0);
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
         let cannot_refract = ri * sin_theta > 1.0;
         let direction = if cannot_refract || (self.reflectance(cos_theta, ri) > rand_f64()) {
-            r_in.direction.reflect(rec.normal)
+            unit_direction.reflect(rec.normal)
         } else {
-            r_in.direction.refract(rec.normal, ri)
+            unit_direction.refract(rec.normal, ri)
         };
 
-        let scattered = Ray::new(rec.p, direction);
+        let scattered = Ray::new_with_time(rec.p, direction, r_in.time);
         Some((attenuation, scattered))
     }
 }

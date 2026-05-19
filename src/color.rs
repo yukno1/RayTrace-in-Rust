@@ -1,6 +1,6 @@
 use std::ops::*;
 
-use crate::{interval::Interval, vec3::Vec3};
+use crate::{interval::Interval, utils::rand_f64_range, vec3::Vec3};
 
 #[derive(Clone, Copy)]
 pub struct Color {
@@ -13,6 +13,18 @@ impl Color {
     pub fn new(r: f64, g: f64, b: f64) -> Self {
         Self { r, g, b }
     }
+
+    pub fn zero() -> Self {
+        Self::new(0.0, 0.0, 0.0)
+    }
+
+    pub fn rand(min: f64, max: f64) -> Self {
+        Self::new(
+            rand_f64_range(min, max),
+            rand_f64_range(min, max),
+            rand_f64_range(min, max),
+        )
+    }
 }
 
 impl From<Vec3> for Color {
@@ -20,7 +32,7 @@ impl From<Vec3> for Color {
         if vec3.len() == 1.0 {
             Self::new(vec3.x, vec3.y, vec3.z)
         } else {
-            let v = vec3.unit_vec3();
+            let v = vec3;
             Self::new(v.x, v.y, v.z)
         }
     }
