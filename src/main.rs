@@ -7,11 +7,12 @@ mod hittable_list;
 mod interval;
 mod material;
 mod ray;
-// mod render;
+mod rtw_image;
 mod sphere;
 mod texture;
 mod utils;
 mod vec3;
+// mod render;
 
 // cpu
 use crate::{
