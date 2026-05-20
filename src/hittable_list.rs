@@ -3,27 +3,29 @@ use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::ray::Ray;
 
-pub struct HittableList<'a> {
-    objects: Vec<Box<dyn Hittable + 'a>>,
+use std::sync::Arc;
+
+#[derive(Clone)]
+pub struct HittableList {
+    pub objects: Vec<Arc<dyn Hittable>>,
     bbox: AABB,
 }
 
-impl<'a> HittableList<'a> {
-    pub fn new() -> Self {
-        Self {
-            objects: Vec::new(),
-            bbox: AABB::default(),
-        }
+impl HittableList {
+    pub fn new(object: impl Hittable + 'static) -> Self {
+        let mut l = Self::default();
+        l.add(object);
+        l
     }
 
     // takes ownership of object
-    pub fn add(&mut self, object: impl Hittable + 'a) {
+    pub fn add(&mut self, object: impl Hittable + 'static) {
         self.bbox = AABB::from_boxes(self.bbox, object.bounding_box().clone());
-        self.objects.push(Box::new(object));
+        self.objects.push(Arc::new(object));
     }
 }
 
-impl<'a> Hittable for HittableList<'a> {
+impl Hittable for HittableList {
     fn hit(&self, r: &Ray, mut ray_t: Interval) -> Option<HitRecord<'_>> {
         let mut temp: Option<HitRecord> = None;
         for obj in self.objects.iter() {
@@ -37,5 +39,14 @@ impl<'a> Hittable for HittableList<'a> {
 
     fn bounding_box(&self) -> AABB {
         self.bbox
+    }
+}
+
+impl Default for HittableList {
+    fn default() -> Self {
+        Self {
+            objects: Vec::new(),
+            bbox: AABB::default(),
+        }
     }
 }

@@ -11,6 +11,10 @@ pub fn rand_f64() -> f64 {
     fastrand::f64()
 }
 
+pub fn rand_usize(min: usize, max: usize) -> usize {
+    fastrand::usize(min..(max + 1))
+}
+
 pub fn rand_f64_range(min: f64, max: f64) -> f64 {
     min + (max - min) * rand_f64()
 }

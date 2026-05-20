@@ -12,6 +12,7 @@ mod utils;
 mod vec3;
 
 use crate::{
+    bvh::BVHNode,
     camera::Camera,
     color::Color,
     hittable_list::HittableList,
@@ -23,7 +24,7 @@ use crate::{
 
 fn main() {
     // world
-    let mut world: HittableList<'static> = HittableList::new();
+    let mut world: HittableList = HittableList::default();
 
     let mat_ground = Lambertian::new(Color::new(0.5, 0.5, 0.5));
     world.add(Sphere::new(
@@ -71,6 +72,9 @@ fn main() {
 
     let mat3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
     world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, mat3));
+
+    let world_bvh = BVHNode::from_hittable_list(world);
+    world = HittableList::new(world_bvh);
 
     let mut camera = Camera::new();
     camera.aspect_ratio = 16.0 / 9.0;

@@ -41,3 +41,8 @@ pub trait Hittable {
 
     fn bounding_box(&self) -> AABB;
 }
+
+pub trait Hitbox {
+    fn is_hit(&self, r: &Ray, ray_t: Interval) -> bool;
+    fn bounding_box(&self) -> AABB;
+}
