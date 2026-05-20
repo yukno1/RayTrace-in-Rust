@@ -6,7 +6,6 @@ use crate::{
     hittable_list::HittableList,
     interval::Interval,
     ray::Ray,
-    utils::rand_usize,
 };
 
 // Bounding Volume Hierarchies
@@ -18,7 +17,14 @@ pub struct BVHNode {
 
 impl BVHNode {
     pub fn new(objects: &mut [Arc<dyn Hittable>]) -> Self {
-        let axis = rand_usize(0, 2);
+        // let no_hit: Arc<dyn Hittable> = Arc::new(NoHit);
+
+        let mut bbox = AABB::default();
+        for obj in objects.iter() {
+            bbox = AABB::from_boxes(bbox, obj.bounding_box().clone());
+        }
+        let axis = bbox.longest_axis();
+        // or use SAH: let axis = objects.len() % 3;  // Rotate through x, y, z
 
         let comparator = match axis {
             0 => Self::box_x_compare,
@@ -27,7 +33,7 @@ impl BVHNode {
         };
 
         let (left, right): (Arc<dyn Hittable>, Arc<dyn Hittable>) = match objects.len() {
-            1 => (Arc::clone(&objects[0]), Arc::new(NoHit)),
+            1 => (Arc::clone(&objects[0]), Arc::clone(&objects[0])),
             2 => (Arc::clone(&objects[0]), Arc::clone(&objects[1])),
             _ => {
                 objects.sort_by(|a, b| comparator(a, b));
@@ -39,7 +45,7 @@ impl BVHNode {
             }
         };
 
-        let bbox = AABB::from_boxes(left.bounding_box(), right.bounding_box());
+        // let bbox = AABB::from_boxes(left.bounding_box(), right.bounding_box());
         Self { left, right, bbox }
     }
 
@@ -47,6 +53,7 @@ impl BVHNode {
         Self::new(&mut list.objects)
     }
 
+    #[inline]
     fn box_compare(
         a: &Arc<dyn Hittable>,
         b: &Arc<dyn Hittable>,
@@ -78,9 +85,22 @@ impl Hittable for BVHNode {
         if !self.bbox.is_hit(r, ray_t) {
             return None;
         }
-        let hit_left = self.left.hit(r, ray_t);
+
+        let hit_left = if self.left.bounding_box().is_hit(r, ray_t) {
+            self.left.hit(r, ray_t)
+        } else {
+            None
+        };
         let right_tmax = hit_left.as_ref().map_or(ray_t.max, |rec| rec.t);
-        let hit_right = self.right.hit(r, Interval::new(ray_t.min, right_tmax));
+        let hit_right = if self
+            .right
+            .bounding_box()
+            .is_hit(r, Interval::new(ray_t.min, right_tmax))
+        {
+            self.right.hit(r, Interval::new(ray_t.min, right_tmax))
+        } else {
+            None
+        };
         // hit_right, if it exists, is guaranteed closer (or equal), so prefer it
         hit_right.or(hit_left)
     }
@@ -90,13 +110,13 @@ impl Hittable for BVHNode {
     }
 }
 
-struct NoHit;
+// struct NoHit;
 
-impl Hittable for NoHit {
-    fn hit(&self, _r: &Ray, _ray_t: Interval) -> Option<HitRecord<'_>> {
-        None
-    }
-    fn bounding_box(&self) -> AABB {
-        AABB::default() // or however you represent an empty/degenerate AABB
-    }
-}
+// impl Hittable for NoHit {
+//     fn hit(&self, _r: &Ray, _ray_t: Interval) -> Option<HitRecord<'_>> {
+//         None
+//     }
+//     fn bounding_box(&self) -> AABB {
+//         AABB::default() // or however you represent an empty/degenerate AABB
+//     }
+// }

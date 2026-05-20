@@ -1,5 +1,12 @@
 // Axis-Aligned Bounding Boxes
-use crate::{hittable::Hitbox, interval::Interval, ray::Ray, vec3::Point3};
+#![allow(unused)]
+
+use crate::{
+    hittable::Hitbox,
+    interval::{EMPTY_INTERVAL, Interval, UNIVERSE_INTERVAL},
+    ray::Ray,
+    vec3::Point3,
+};
 
 #[derive(Clone, Copy)]
 pub struct AABB {
@@ -7,6 +14,17 @@ pub struct AABB {
     pub y: Interval,
     pub z: Interval,
 }
+
+const EMPTY_AABB: AABB = AABB {
+    x: EMPTY_INTERVAL,
+    y: EMPTY_INTERVAL,
+    z: EMPTY_INTERVAL,
+};
+const UNIVERSE_AABB: AABB = AABB {
+    x: UNIVERSE_INTERVAL,
+    y: UNIVERSE_INTERVAL,
+    z: UNIVERSE_INTERVAL,
+};
 
 impl AABB {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
@@ -82,15 +100,21 @@ impl AABB {
         }
         true
     }
+
+    pub fn longest_axis(&self) -> usize {
+        // Returns the index of the longest axis of the bounding box.
+
+        if self.x.size() > self.y.size() {
+            if self.x.size() > self.z.size() { 0 } else { 2 }
+        } else {
+            if self.y.size() > self.z.size() { 1 } else { 2 }
+        }
+    }
 }
 
 impl Default for AABB {
     fn default() -> Self {
-        Self::new(
-            Interval::default(),
-            Interval::default(),
-            Interval::default(),
-        )
+        EMPTY_AABB
     }
 }
 

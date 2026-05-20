@@ -12,11 +12,11 @@ pub struct HittableList {
 }
 
 impl HittableList {
-    pub fn new(object: impl Hittable + 'static) -> Self {
-        let mut l = Self::default();
-        l.add(object);
-        l
-    }
+    // pub fn new(object: impl Hittable + 'static) -> Self {
+    //     let mut l = Self::default();
+    //     l.add(object);
+    //     l
+    // }
 
     // takes ownership of object
     pub fn add(&mut self, object: impl Hittable + 'static) {

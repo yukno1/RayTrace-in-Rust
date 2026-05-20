@@ -6,6 +6,9 @@ pub struct Interval {
     pub max: f64,
 }
 
+pub const EMPTY_INTERVAL: Interval = Interval::new(f64::INFINITY, -f64::INFINITY);
+pub const UNIVERSE_INTERVAL: Interval = Interval::new(-f64::INFINITY, f64::INFINITY);
+
 impl Interval {
     pub const fn new(min: f64, max: f64) -> Self {
         Self { min, max }
@@ -50,6 +53,6 @@ impl Interval {
 impl Default for Interval {
     // Default interval is empty
     fn default() -> Self {
-        Self::new(f64::INFINITY, -f64::INFINITY)
+        EMPTY_INTERVAL
     }
 }
