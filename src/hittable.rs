@@ -1,6 +1,6 @@
 use crate::aabb::AABB;
 use crate::interval::Interval;
-use crate::materials::Material;
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
 
@@ -8,6 +8,8 @@ pub struct HitRecord<'a> {
     pub t: f64,
     pub p: Point3,
     pub normal: Vec3,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
     pub mat: &'a dyn Material,
 }
@@ -18,6 +20,8 @@ impl<'a> HitRecord<'a> {
             t,
             p,
             normal,
+            u: 0.0,
+            v: 0.0,
             front_face: false,
             mat,
         };
