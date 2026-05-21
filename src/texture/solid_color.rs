@@ -9,6 +9,7 @@ impl SolidColor {
         Self { albedo }
     }
 
+    #[allow(dead_code)]
     pub fn from_rgb(r: f64, g: f64, b: f64) -> Self {
         Self::new(Color::new(r, g, b))
     }

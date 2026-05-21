@@ -8,7 +8,7 @@
 // The `image` crate is the idiomatic Rust replacement for stb_image. It supports
 // JPEG, PNG, BMP, TGA, HDR/EXR, and more, and can decode directly to f32 (linear) data.
 
-use image::{DynamicImage, GenericImageView, ImageError, Pixel};
+use image::{DynamicImage, GenericImageView, Pixel};
 use std::env;
 use std::path::{Path, PathBuf};
 

@@ -25,9 +25,12 @@ impl Perlin {
     }
 
     pub fn noise(&self, p: Point3) -> f64 {
-        let u = p.x - (p.x).floor();
-        let v = p.y - (p.y).floor();
-        let w = p.z - (p.z).floor();
+        let mut u = p.x - (p.x).floor();
+        let mut v = p.y - (p.y).floor();
+        let mut w = p.z - (p.z).floor();
+        u = u * u * (3.0 - 2.0 * u);
+        v = v * v * (3.0 - 2.0 * v);
+        w = w * w * (3.0 - 2.0 * w);
 
         // rust 不会像 c++ 那样通过补码将负数回绕到 [0，255]
         let i = p.x.floor() as isize;

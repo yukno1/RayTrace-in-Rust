@@ -22,7 +22,7 @@ use crate::{
     hittable_list::HittableList,
     material::{Dielectric, Lambertian, Metal},
     sphere::Sphere,
-    texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture, image_tex},
+    texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture},
     utils::{rand_f64, rand_f64_range},
     vec3::{Point3, Vec3},
 };
