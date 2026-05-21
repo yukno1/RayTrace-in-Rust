@@ -12,6 +12,7 @@ pub trait Texture {
 }
 
 pub use checker::CheckerTexture;
+
 pub use image_tex::ImageTexture;
 pub use noise_tex::NoiseTexture;
 pub use solid_color::SolidColor;

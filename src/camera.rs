@@ -13,6 +13,8 @@ pub struct Camera {
     pub image_width: usize, // 400
     pub samples_per_pixel: usize,
     pub max_depth: usize,
+    pub background: Color,
+
     pub vfov: f64,
     pub lookfrom: Point3,
     pub lookat: Point3,
@@ -148,18 +150,24 @@ impl Camera {
         if depth <= 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
+
+        // If the ray hits nothing, return the background color.
         // 1e-3 to avoid shadow acne
         match world.hit(ray, Interval::new(1e-3, f64::INFINITY)) {
             Some(rec) => {
+                let color_from_emission = rec.mat.emitted(rec.u, rec.v, rec.p);
                 if let Some((attenuation, scattered)) = rec.mat.scatter(ray, &rec) {
-                    return attenuation * self.ray_color(&scattered, depth - 1, world);
+                    let color_from_scatter =
+                        attenuation * self.ray_color(&scattered, depth - 1, world);
+                    return color_from_emission + color_from_scatter;
                 }
-                return Color::new(0.0, 0.0, 0.0);
+                return color_from_emission;
             }
             None => {
-                let unit_direction = ray.direction.unit_vec3();
-                let a = 0.5 * (unit_direction.y + 1.0);
-                (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+                // let unit_direction = ray.direction.unit_vec3();
+                // let a = 0.5 * (unit_direction.y + 1.0);
+                // (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
+                self.background
             }
         }
     }

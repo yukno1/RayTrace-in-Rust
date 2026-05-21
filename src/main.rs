@@ -21,7 +21,7 @@ use crate::{
     camera::Camera,
     color::Color,
     hittable_list::HittableList,
-    material::{Dielectric, Lambertian, Metal},
+    material::{Dielectric, DiffuseLight, Lambertian, Metal},
     quad::Quad,
     sphere::Sphere,
     texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture},
@@ -188,17 +188,6 @@ fn main() -> Result<()> {
 */
 
 // cpu
-fn main() {
-    match 5 {
-        1 => bouncing_spheres(),
-        2 => checkered_spheres(),
-        3 => earth(),
-        4 => perlin_spheres(),
-        5 => quads(),
-        _ => (),
-    }
-}
-
 fn bouncing_spheres() {
     // world
     let mut world: HittableList = HittableList::default();
@@ -270,6 +259,7 @@ fn bouncing_spheres() {
     camera.image_width = 400;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
+    camera.background = Color::new(0.7, 0.8, 1.0);
 
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(13.0, 2.0, 3.0);
@@ -316,6 +306,7 @@ fn checkered_spheres() {
     camera.image_width = 400;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
+    camera.background = Color::new(0.7, 0.8, 1.0);
 
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(13.0, 2.0, 3.0);
@@ -342,6 +333,7 @@ fn earth() {
     camera.image_width = 400;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
+    camera.background = Color::new(0.7, 0.8, 1.0);
 
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(13.0, 2.0, 3.0);
@@ -375,6 +367,7 @@ fn perlin_spheres() {
     camera.image_width = 400;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
+    camera.background = Color::new(0.7, 0.8, 1.0);
 
     camera.vfov = 20.0;
     camera.lookfrom = Point3::new(13.0, 2.0, 3.0);
@@ -436,6 +429,7 @@ fn quads() {
     camera.image_width = 400;
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
+    camera.background = Color::new(0.7, 0.8, 1.0);
 
     camera.vfov = 80.0;
     camera.lookfrom = Point3::new(0.0, 0.0, 9.0);
@@ -447,4 +441,58 @@ fn quads() {
     camera.init();
 
     camera.render(&world);
+}
+
+fn simple_light() {
+    let mut world: HittableList = HittableList::default();
+
+    let pertex = Arc::new(NoiseTexture::new(4.0));
+    world.add(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Lambertian::from_tex(pertex.clone()),
+    ));
+    world.add(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Lambertian::from_tex(pertex.clone()),
+    ));
+
+    let difflight = Arc::new(DiffuseLight::from_color(Color::new(4.0, 4.0, 4.0)));
+    world.add(Quad::new(
+        Point3::new(3.0, 1.0, -2.0),
+        Vec3::new(2.0, 0.0, 0.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        difflight,
+    ));
+
+    let mut camera = Camera::new();
+    camera.aspect_ratio = 16.0 / 9.0;
+    camera.image_width = 400;
+    camera.samples_per_pixel = 100;
+    camera.max_depth = 50;
+    camera.background = Color::new(0.0, 0.0, 0.0);
+
+    camera.vfov = 20.0;
+    camera.lookfrom = Point3::new(26.0, 3.0, 6.0);
+    camera.lookat = Point3::new(0.0, 2.0, 0.0);
+    camera.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    camera.defocus_angle = 0.0;
+    // camera.focus_dist = 10.0;
+    camera.init();
+
+    camera.render(&world);
+}
+
+fn main() {
+    match 6 {
+        1 => bouncing_spheres(),
+        2 => checkered_spheres(),
+        3 => earth(),
+        4 => perlin_spheres(),
+        5 => quads(),
+        6 => simple_light(),
+        _ => (),
+    }
 }

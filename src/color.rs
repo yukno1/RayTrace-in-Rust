@@ -68,6 +68,12 @@ impl Mul<Color> for f64 {
     }
 }
 
+impl Default for Color {
+    fn default() -> Self {
+        Self::zero()
+    }
+}
+
 pub fn linear_to_gemma(linear_component: f64) -> f64 {
     if linear_component > 0.0 {
         linear_component.sqrt()

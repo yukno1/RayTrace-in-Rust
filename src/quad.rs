@@ -1,8 +1,9 @@
+#![allow(non_snake_case)]
 use std::sync::Arc;
 
 use crate::{
     aabb::AABB,
-    hittable::{HitRecord, Hitbox, Hittable},
+    hittable::{HitRecord, Hittable},
     interval::Interval,
     material::Material,
     vec3::{Point3, Vec3},
