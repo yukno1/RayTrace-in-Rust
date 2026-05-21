@@ -25,9 +25,9 @@ impl Perlin {
     // }
 
     pub fn noise(&self, p: Point3) -> f64 {
-        let mut u = p.x - (p.x).floor();
-        let mut v = p.y - (p.y).floor();
-        let mut w = p.z - (p.z).floor();
+        let u = p.x - (p.x).floor();
+        let v = p.y - (p.y).floor();
+        let w = p.z - (p.z).floor();
 
         // rust 不会像 c++ 那样通过补码将负数回绕到 [0，255]
         let i = p.x.floor() as isize;
@@ -46,6 +46,20 @@ impl Perlin {
         }
 
         Self::perlin_interp(c, u, v, w)
+    }
+
+    pub fn turb(&self, p: Point3, depth: usize) -> f64 {
+        let mut accum = 0.0;
+        let mut temp_p = p;
+        let mut weight = 1.0;
+
+        for _ in 0..depth {
+            accum += weight * self.noise(temp_p);
+            weight *= 0.5;
+            temp_p *= 2.0;
+        }
+
+        accum.abs()
     }
 
     fn perlin_generate_perm(p: &mut [usize; POINT_COUNT]) {
