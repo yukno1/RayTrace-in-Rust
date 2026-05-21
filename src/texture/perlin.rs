@@ -1,5 +1,5 @@
 use crate::{
-    utils::{rand_f64, rand_f64_range, rand_usize},
+    utils::rand_usize,
     vec3::{Point3, Vec3},
 };
 

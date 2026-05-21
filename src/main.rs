@@ -479,14 +479,82 @@ fn simple_light() {
     camera.render(&world);
 }
 
+fn cornell_box() {
+    let mut world: HittableList = HittableList::default();
+
+    // Materials
+    let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
+    let green = Arc::new(Lambertian::new(Color::new(0.12, 0.45, 0.15)));
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(15.0, 15.0, 15.0)));
+
+    // Quads
+    world.add(Quad::new(
+        Point3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        green,
+    ));
+    world.add(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        red,
+    ));
+    world.add(Quad::new(
+        Point3::new(343.0, 554.0, 332.0),
+        Vec3::new(-130.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -105.0),
+        light,
+    ));
+    world.add(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        white.clone(),
+    ));
+    world.add(Quad::new(
+        Point3::new(555.0, 555.0, 555.0),
+        Vec3::new(-555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -555.0),
+        white.clone(),
+    ));
+    world.add(Quad::new(
+        Point3::new(0.0, 0.0, 555.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        white.clone(),
+    ));
+
+    let mut camera = Camera::new();
+
+    camera.aspect_ratio = 1.0;
+    camera.image_width = 600;
+    camera.samples_per_pixel = 200;
+    camera.max_depth = 50;
+    camera.background = Color::new(0.0, 0.0, 0.0);
+
+    camera.vfov = 40.0;
+    camera.lookfrom = Point3::new(278.0, 278.0, -800.0);
+    camera.lookat = Point3::new(278.0, 278.0, 0.0);
+    camera.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    camera.defocus_angle = 0.0;
+
+    camera.init();
+
+    camera.render(&world);
+}
+
 fn main() {
-    match 6 {
+    match 7 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
         4 => perlin_spheres(),
         5 => quads(),
         6 => simple_light(),
-        _ => (),
+        7 => cornell_box(),
+        _ => {}
     }
 }
