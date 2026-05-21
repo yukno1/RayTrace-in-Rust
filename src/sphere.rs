@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::{f64::consts::PI, sync::Arc};
 
 use crate::{
     aabb::AABB,
@@ -9,20 +9,20 @@ use crate::{
     vec3::{Point3, Vec3},
 };
 
-pub struct Sphere<'a> {
+pub struct Sphere {
     centre: Ray,
     radius: f64,
-    mat: Box<dyn Material + 'a>,
+    mat: Arc<dyn Material>,
     bbox: AABB,
 }
 
-impl<'a> Sphere<'a> {
-    pub fn new(static_centre: Point3, radius: f64, mat: impl Material + 'a) -> Self {
+impl Sphere {
+    pub fn new(static_centre: Point3, radius: f64, mat: Arc<dyn Material>) -> Self {
         let rvec = Vec3::new(radius, radius, radius);
         Self {
             centre: Ray::new(static_centre, Vec3::new(0.0, 0.0, 0.0)),
             radius: radius.max(0.0),
-            mat: Box::new(mat),
+            mat,
             bbox: AABB::from_2_points(static_centre - rvec, static_centre + rvec),
         }
     }
@@ -31,7 +31,7 @@ impl<'a> Sphere<'a> {
         centre1: Point3,
         centre2: Point3,
         radius: f64,
-        mat: impl Material + 'a,
+        mat: Arc<dyn Material>,
     ) -> Self {
         let centre = Ray::new(centre1, centre2 - centre1);
         let rvec = Vec3::new(radius, radius, radius);
@@ -40,7 +40,7 @@ impl<'a> Sphere<'a> {
         Self {
             centre,
             radius: radius.max(0.0),
-            mat: Box::new(mat),
+            mat,
             bbox: AABB::from_boxes(box1, box2),
         }
     }
@@ -59,7 +59,7 @@ impl<'a> Sphere<'a> {
     }
 }
 
-impl<'a> Hittable for Sphere<'a> {
+impl Hittable for Sphere {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord<'_>> {
         let current_centre = self.centre.at(r.time);
         let oc = current_centre - r.origin;

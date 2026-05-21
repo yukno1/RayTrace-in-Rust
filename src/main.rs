@@ -21,7 +21,7 @@ use crate::{
     camera::Camera,
     color::Color,
     hittable_list::HittableList,
-    material::{Dielectric, DiffuseLight, Lambertian, Metal},
+    material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     quad::Quad,
     sphere::Sphere,
     texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture},
@@ -208,7 +208,7 @@ fn bouncing_spheres() {
     world.add(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Lambertian::from_tex(checker),
+        Arc::new(Lambertian::from_tex(checker)),
     ));
 
     for a in -11..11 {
@@ -224,31 +224,31 @@ fn bouncing_spheres() {
                 if choose_mat < 0.8 {
                     // diffuse
                     let albedo = Color::from(Vec3::rand_vec3()) * Color::from(Vec3::rand_vec3());
-                    let mat = Lambertian::new(albedo);
+                    let mat = Arc::new(Lambertian::new(albedo));
                     let centre2 = centre + Vec3::new(0.0, rand_f64_range(0.0, 0.5), 0.0);
                     world.add(Sphere::new_moving(centre, centre2, 0.2, mat));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Color::rand(0.5, 1.0);
                     let fuzz = rand_f64_range(0.0, 0.5);
-                    let mat = Metal::new(albedo, fuzz);
+                    let mat = Arc::new(Metal::new(albedo, fuzz));
                     world.add(Sphere::new(centre, 0.2, mat));
                 } else {
                     // glass
-                    let mat = Dielectric::new(1.5);
+                    let mat = Arc::new(Dielectric::new(1.5));
                     world.add(Sphere::new(centre, 0.2, mat));
                 };
             }
         }
     }
 
-    let mat1 = Dielectric::new(1.5);
+    let mat1 = Arc::new(Dielectric::new(1.5));
     world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, mat1));
 
-    let mat2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
+    let mat2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
     world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, mat2));
 
-    let mat3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
+    let mat3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
     world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, mat3));
 
     let world = BVHNode::from_hittable_list(world);
@@ -290,16 +290,13 @@ fn checkered_spheres() {
         },
     ));
 
+    let lam_checker = Arc::new(Lambertian::from_tex(checker.clone()));
     world.add(Sphere::new(
         Point3::new(0.0, -10.0, 0.0),
         10.0,
-        Lambertian::from_tex(Arc::clone(&checker)),
+        lam_checker.clone(),
     ));
-    world.add(Sphere::new(
-        Point3::new(0.0, 10.0, 0.0),
-        10.0,
-        Lambertian::from_tex(Arc::clone(&checker)),
-    ));
+    world.add(Sphere::new(Point3::new(0.0, 10.0, 0.0), 10.0, lam_checker));
 
     let mut camera = Camera::new();
     camera.aspect_ratio = 16.0 / 9.0;
@@ -325,7 +322,7 @@ fn earth() {
 
     let earth_tex = ImageTexture::new("earthmap.jpg");
     let earth_surface = Lambertian::from_tex(Arc::new(earth_tex));
-    let globe = Sphere::new(Point3::new(0.0, 0.0, 0.0), 2.0, earth_surface);
+    let globe = Sphere::new(Point3::new(0.0, 0.0, 0.0), 2.0, Arc::new(earth_surface));
     world.add(globe);
 
     let mut camera = Camera::new();
@@ -351,16 +348,13 @@ fn perlin_spheres() {
     let mut world: HittableList = HittableList::default();
 
     let pertex = Arc::new(NoiseTexture::new(4.0));
+    let lam_pertex = Arc::new(Lambertian::from_tex(pertex));
     world.add(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Lambertian::from_tex(pertex.clone()),
+        lam_pertex.clone(),
     ));
-    world.add(Sphere::new(
-        Point3::new(0.0, 2.0, 0.0),
-        2.0,
-        Lambertian::from_tex(pertex.clone()),
-    ));
+    world.add(Sphere::new(Point3::new(0.0, 2.0, 0.0), 2.0, lam_pertex));
 
     let mut camera = Camera::new();
     camera.aspect_ratio = 16.0 / 9.0;
@@ -447,28 +441,28 @@ fn simple_light() {
     let mut world: HittableList = HittableList::default();
 
     let pertex = Arc::new(NoiseTexture::new(4.0));
+    let lam_pertex = Arc::new(Lambertian::from_tex(pertex.clone()));
     world.add(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
-        Lambertian::from_tex(pertex.clone()),
+        lam_pertex.clone(),
     ));
-    world.add(Sphere::new(
-        Point3::new(0.0, 2.0, 0.0),
-        2.0,
-        Lambertian::from_tex(pertex.clone()),
-    ));
+    world.add(Sphere::new(Point3::new(0.0, 2.0, 0.0), 2.0, lam_pertex));
 
-    let difflight = Arc::new(DiffuseLight::from_color(Color::new(4.0, 4.0, 4.0)));
+    let difflight: Arc<dyn Material> =
+        Arc::new(DiffuseLight::from_color(Color::new(4.0, 4.0, 4.0)));
     world.add(Quad::new(
         Point3::new(3.0, 1.0, -2.0),
         Vec3::new(2.0, 0.0, 0.0),
         Vec3::new(0.0, 2.0, 0.0),
-        difflight,
+        difflight.clone(),
     ));
+    world.add(Sphere::new(Point3::new(0.0, 7.0, 0.0), 2.0, difflight));
 
     let mut camera = Camera::new();
     camera.aspect_ratio = 16.0 / 9.0;
     camera.image_width = 400;
+
     camera.samples_per_pixel = 100;
     camera.max_depth = 50;
     camera.background = Color::new(0.0, 0.0, 0.0);
