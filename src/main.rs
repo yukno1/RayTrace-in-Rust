@@ -22,7 +22,7 @@ use crate::{
     hittable_list::HittableList,
     material::{Dielectric, Lambertian, Metal},
     sphere::Sphere,
-    texture::{CheckerTexture, ImageTexture, Texture, image_tex},
+    texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture, image_tex},
     utils::{rand_f64, rand_f64_range},
     vec3::{Point3, Vec3},
 };
@@ -185,10 +185,11 @@ use std::sync::Arc;
 
 // cpu
 fn main() {
-    match 3 {
+    match 4 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
+        4 => perlin_spheres(),
         _ => (),
     }
 }
@@ -330,6 +331,39 @@ fn earth() {
     let earth_surface = Lambertian::from_tex(Arc::new(earth_tex));
     let globe = Sphere::new(Point3::new(0.0, 0.0, 0.0), 2.0, earth_surface);
     world.add(globe);
+
+    let mut camera = Camera::new();
+    camera.aspect_ratio = 16.0 / 9.0;
+    camera.image_width = 400;
+    camera.samples_per_pixel = 100;
+    camera.max_depth = 50;
+
+    camera.vfov = 20.0;
+    camera.lookfrom = Point3::new(13.0, 2.0, 3.0);
+    camera.lookat = Point3::new(0.0, 0.0, 0.0);
+    camera.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    camera.defocus_angle = 0.0;
+    // camera.focus_dist = 10.0;
+    camera.init();
+
+    camera.render(&world);
+}
+
+fn perlin_spheres() {
+    let mut world: HittableList = HittableList::default();
+
+    let pertex = Arc::new(NoiseTexture::default());
+    world.add(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Lambertian::from_tex(pertex.clone()),
+    ));
+    world.add(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Lambertian::from_tex(pertex.clone()),
+    ));
 
     let mut camera = Camera::new();
     camera.aspect_ratio = 16.0 / 9.0;
