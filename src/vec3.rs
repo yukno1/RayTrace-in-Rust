@@ -46,7 +46,7 @@ impl Vec3 {
         Vec3::new(rand_f64(), rand_f64(), rand_f64())
     }
 
-    pub fn rand_range_vec3(min: f64, max: f64) -> Vec3 {
+    pub fn rand_vec3_range(min: f64, max: f64) -> Vec3 {
         Vec3::new(
             rand_f64_range(min, max),
             rand_f64_range(min, max),
@@ -69,7 +69,7 @@ impl Vec3 {
 
     pub fn rand_unit_vec3() -> Vec3 {
         loop {
-            let p = Vec3::rand_range_vec3(-1.0, 1.0);
+            let p = Vec3::rand_vec3_range(-1.0, 1.0);
             if 1e-160 < p.len_sq() && p.len_sq() <= 1.0 {
                 return p / p.len();
             }
