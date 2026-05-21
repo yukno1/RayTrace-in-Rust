@@ -1,5 +1,4 @@
 // Axis-Aligned Bounding Boxes
-#![allow(unused)]
 
 use crate::{
     hittable::Hitbox,
@@ -28,28 +27,20 @@ const UNIVERSE_AABB: AABB = AABB {
 
 impl AABB {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
-        Self { x, y, z }
+        let mut tmp = Self { x, y, z };
+        tmp.pad_to_min();
+        tmp
     }
 
     pub fn from_2_points(a: Point3, b: Point3) -> Self {
         // Treat the two points a and b as extrema for the bounding box, so we don't require a
         // particular minimum/maximum coordinate order.
-        let x = if a.x <= b.x {
-            Interval::new(a.x, b.x)
-        } else {
-            Interval::new(b.x, a.x)
-        };
-        let y = if a.y <= b.y {
-            Interval::new(a.y, b.y)
-        } else {
-            Interval::new(b.y, a.y)
-        };
-        let z = if a.z <= b.z {
-            Interval::new(a.z, b.z)
-        } else {
-            Interval::new(b.z, a.z)
-        };
-        Self { x, y, z }
+        let x = Interval::new(a.x.min(b.x), a.x.max(b.x));
+        let y = Interval::new(a.y.min(b.y), a.y.max(b.y));
+        let z = Interval::new(a.z.min(b.z), a.z.max(b.z));
+        let mut tmp = Self { x, y, z };
+        tmp.pad_to_min();
+        tmp
     }
 
     pub fn from_boxes(box0: AABB, box1: AABB) -> AABB {
@@ -109,6 +100,20 @@ impl AABB {
         } else {
             if self.y.size() > self.z.size() { 1 } else { 2 }
         }
+    }
+
+    fn pad_to_min(&mut self) {
+        // Adjust the AABB so that no side is narrower than some delta, padding if necessary.
+        let delta = 1e-4;
+        if (self.x.size() < delta) {
+            self.x = self.x.expand(delta)
+        };
+        if (self.y.size() < delta) {
+            self.y = self.y.expand(delta)
+        };
+        if (self.z.size() < delta) {
+            self.z = self.z.expand(delta)
+        };
     }
 }
 

@@ -6,6 +6,7 @@ mod hittable;
 mod hittable_list;
 mod interval;
 mod material;
+mod quad;
 mod ray;
 mod rtw_image;
 mod sphere;
@@ -21,6 +22,7 @@ use crate::{
     color::Color,
     hittable_list::HittableList,
     material::{Dielectric, Lambertian, Metal},
+    quad::Quad,
     sphere::Sphere,
     texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture},
     utils::{rand_f64, rand_f64_range},
@@ -28,168 +30,171 @@ use crate::{
 };
 use std::sync::Arc;
 
+/*
 // gpu
-// use {
-//     anyhow::{Context, Result},
-//     winit::{
-//         application::ApplicationHandler,
-//         event::{Event, WindowEvent},
-//         event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-//         window::{Window, WindowAttributes, WindowId},
-//     },
-// };
+use {
+    anyhow::{Context, Result},
+    winit::{
+        application::ApplicationHandler,
+        event::{Event, WindowEvent},
+        event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
+        window::{Window, WindowAttributes, WindowId},
+    },
+};
 
-// const WIDTH: u32 = 800;
-// const HEIGHT: u32 = 600;
+const WIDTH: u32 = 800;
+const HEIGHT: u32 = 600;
 
-// struct App {
-//     #[allow(unused)]
-//     window: Arc<Window>,
-//     surface: wgpu::Surface<'static>,
-//     device: Arc<wgpu::Device>,
-//     queue: Arc<wgpu::Queue>,
-//     config: wgpu::SurfaceConfiguration,
-// }
+struct App {
+    #[allow(unused)]
+    window: Arc<Window>,
+    surface: wgpu::Surface<'static>,
+    device: Arc<wgpu::Device>,
+    queue: Arc<wgpu::Queue>,
+    config: wgpu::SurfaceConfiguration,
+}
 
-// #[derive(Default)]
-// struct AppHandler {
-//     app: Option<App>,
-// }
+#[derive(Default)]
+struct AppHandler {
+    app: Option<App>,
+}
 
-// impl ApplicationHandler for AppHandler {
-//     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-//         // 恢复事件
-//         if self.app.is_some() {
-//             return;
-//         }
+impl ApplicationHandler for AppHandler {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        // 恢复事件
+        if self.app.is_some() {
+            return;
+        }
 
-//         let window_size = winit::dpi::PhysicalSize::new(WIDTH, HEIGHT);
-//         let window_attrs = WindowAttributes::default()
-//             .with_inner_size(window_size)
-//             .with_resizable(false)
-//             .with_title("GPU Path Tracer".to_string());
-//         let window = Arc::new(event_loop.create_window(window_attrs).unwrap());
+        let window_size = winit::dpi::PhysicalSize::new(WIDTH, HEIGHT);
+        let window_attrs = WindowAttributes::default()
+            .with_inner_size(window_size)
+            .with_resizable(false)
+            .with_title("GPU Path Tracer".to_string());
+        let window = Arc::new(event_loop.create_window(window_attrs).unwrap());
 
-//         let (device, queue, surface, config) =
-//             pollster::block_on(connect_to_gpu(Arc::clone(&window))).unwrap();
+        let (device, queue, surface, config) =
+            pollster::block_on(connect_to_gpu(Arc::clone(&window))).unwrap();
 
-//         let device = Arc::new(device);
-//         let queue = Arc::new(queue);
+        let device = Arc::new(device);
+        let queue = Arc::new(queue);
 
-//         let renderer = render::PathTracer::new(device.clone(), queue.clone());
+        let renderer = render::PathTracer::new(device.clone(), queue.clone());
 
-//         self.app = Some(App {
-//             window,
-//             surface,
-//             device,
-//             queue,
-//             config,
-//         });
-//     }
+        self.app = Some(App {
+            window,
+            surface,
+            device,
+            queue,
+            config,
+        });
+    }
 
-//     fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
-//         match event {
-//             WindowEvent::CloseRequested => {
-//                 println!("The close button was pressed; stopping");
-//                 event_loop.exit();
-//             }
-//             WindowEvent::RedrawRequested => {
-//                 // Redraw the application.
-//                 //
-//                 // It's preferable for applications that do not render continuously to render in
-//                 // this event rather than in AboutToWait, since rendering in here allows
-//                 // the program to gracefully handle redraws requested by the OS.
+    fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
+        match event {
+            WindowEvent::CloseRequested => {
+                println!("The close button was pressed; stopping");
+                event_loop.exit();
+            }
+            WindowEvent::RedrawRequested => {
+                // Redraw the application.
+                //
+                // It's preferable for applications that do not render continuously to render in
+                // this event rather than in AboutToWait, since rendering in here allows
+                // the program to gracefully handle redraws requested by the OS.
 
-//                 // Draw.
+                // Draw.
 
-//                 // Queue a RedrawRequested event.
-//                 //
-//                 // You only need to call this if you've determined that you need to redraw in
-//                 // applications which do not always need to. Applications that redraw continuously
-//                 // can render here instead.
-//                 self.app.as_ref().unwrap().window.request_redraw();
-//             }
-//             _ => (),
-//         }
-//     }
-// }
+                // Queue a RedrawRequested event.
+                //
+                // You only need to call this if you've determined that you need to redraw in
+                // applications which do not always need to. Applications that redraw continuously
+                // can render here instead.
+                self.app.as_ref().unwrap().window.request_redraw();
+            }
+            _ => (),
+        }
+    }
+}
 
-// async fn connect_to_gpu(
-//     window: Arc<Window>,
-// ) -> Result<(
-//     wgpu::Device,
-//     wgpu::Queue,
-//     wgpu::Surface<'static>,
-//     wgpu::SurfaceConfiguration,
-// )> {
-//     use wgpu::TextureFormat::{Bgra8Unorm, Rgba8Unorm};
+async fn connect_to_gpu(
+    window: Arc<Window>,
+) -> Result<(
+    wgpu::Device,
+    wgpu::Queue,
+    wgpu::Surface<'static>,
+    wgpu::SurfaceConfiguration,
+)> {
+    use wgpu::TextureFormat::{Bgra8Unorm, Rgba8Unorm};
 
-//     // Create an "instance" of wgpu. This is the entry-point to the API.
-//     let instance = wgpu::Instance::default();
+    // Create an "instance" of wgpu. This is the entry-point to the API.
+    let instance = wgpu::Instance::default();
 
-//     // Create a drawable "surface" that is associated with the window.
-//     let surface = instance.create_surface(window.clone())?;
+    // Create a drawable "surface" that is associated with the window.
+    let surface = instance.create_surface(window.clone())?;
 
-//     // Request a GPU that is compatible with the surface. If the system has multiple GPUs then
-//     // pick the high performance one.
-//     let adapter = instance
-//         .request_adapter(&wgpu::RequestAdapterOptions {
-//             power_preference: wgpu::PowerPreference::HighPerformance,
-//             force_fallback_adapter: false,
-//             compatible_surface: Some(&surface),
-//         })
-//         .await
-//         .context("failed to find a compatible adapter")?;
+    // Request a GPU that is compatible with the surface. If the system has multiple GPUs then
+    // pick the high performance one.
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            force_fallback_adapter: false,
+            compatible_surface: Some(&surface),
+        })
+        .await
+        .context("failed to find a compatible adapter")?;
 
-//     // Connect to the GPU. "device" represents the connection to the GPU and allows us to create
-//     // resources like buffers, textures, and pipelines. "queue" represents the command queue that
-//     // we use to submit commands to the GPU.
-//     let (device, queue) = adapter
-//         .request_device(&wgpu::DeviceDescriptor::default())
-//         .await
-//         .context("failed to connect to the GPU")?;
+    // Connect to the GPU. "device" represents the connection to the GPU and allows us to create
+    // resources like buffers, textures, and pipelines. "queue" represents the command queue that
+    // we use to submit commands to the GPU.
+    let (device, queue) = adapter
+        .request_device(&wgpu::DeviceDescriptor::default())
+        .await
+        .context("failed to connect to the GPU")?;
 
-//     // Configure the texture memory backing the surface. Our renderer will draw to a surface
-//     // texture every frame.
-//     let caps = surface.get_capabilities(&adapter);
-//     let format = caps
-//         .formats
-//         .into_iter()
-//         .find(|it| matches!(it, Rgba8Unorm | Bgra8Unorm))
-//         .context("could not find preferred texture format (Rgba8Unorm or Bgra8Unorm)")?;
-//     let size = window.inner_size();
-//     let config = wgpu::SurfaceConfiguration {
-//         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-//         format,
-//         width: size.width,
-//         height: size.height,
-//         present_mode: wgpu::PresentMode::AutoVsync,
-//         alpha_mode: caps.alpha_modes[0],
-//         view_formats: vec![],
-//         desired_maximum_frame_latency: 3,
-//     };
-//     surface.configure(&device, &config);
+    // Configure the texture memory backing the surface. Our renderer will draw to a surface
+    // texture every frame.
+    let caps = surface.get_capabilities(&adapter);
+    let format = caps
+        .formats
+        .into_iter()
+        .find(|it| matches!(it, Rgba8Unorm | Bgra8Unorm))
+        .context("could not find preferred texture format (Rgba8Unorm or Bgra8Unorm)")?;
+    let size = window.inner_size();
+    let config = wgpu::SurfaceConfiguration {
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        format,
+        width: size.width,
+        height: size.height,
+        present_mode: wgpu::PresentMode::AutoVsync,
+        alpha_mode: caps.alpha_modes[0],
+        view_formats: vec![],
+        desired_maximum_frame_latency: 3,
+    };
+    surface.configure(&device, &config);
 
-//     Ok((device, queue, surface, config))
-// }
+    Ok((device, queue, surface, config))
+}
 
-// gpu
-// fn main() -> Result<()> {
-//     let event_loop = EventLoop::new()?;
+gpu
+fn main() -> Result<()> {
+    let event_loop = EventLoop::new()?;
 
-//     let mut app = AppHandler::default();
-//     event_loop.run_app(&mut app)?;
+    let mut app = AppHandler::default();
+    event_loop.run_app(&mut app)?;
 
-//     Ok(())
-// }
+    Ok(())
+}
+*/
 
 // cpu
 fn main() {
-    match 4 {
+    match 5 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
         4 => perlin_spheres(),
+        5 => quads(),
         _ => (),
     }
 }
@@ -378,6 +383,67 @@ fn perlin_spheres() {
 
     camera.defocus_angle = 0.0;
     // camera.focus_dist = 10.0;
+    camera.init();
+
+    camera.render(&world);
+}
+
+fn quads() {
+    let mut world: HittableList = HittableList::default();
+
+    // Materials
+    let left_red = Arc::new(Lambertian::new(Color::new(1.0, 0.2, 0.2)));
+    let back_green = Arc::new(Lambertian::new(Color::new(0.2, 1.0, 0.2)));
+    let right_blue = Arc::new(Lambertian::new(Color::new(0.2, 0.2, 1.0)));
+    let upper_orange = Arc::new(Lambertian::new(Color::new(1.0, 0.5, 0.0)));
+    let lower_teal = Arc::new(Lambertian::new(Color::new(0.2, 0.8, 0.8)));
+
+    // Quads
+    world.add(Quad::new(
+        Point3::new(-3.0, -2.0, 5.0),
+        Vec3::new(0.0, 0.0, -4.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        left_red,
+    ));
+    world.add(Quad::new(
+        Point3::new(-2.0, -2.0, 0.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        back_green,
+    ));
+    world.add(Quad::new(
+        Point3::new(3.0, -2.0, 1.0),
+        Vec3::new(0.0, 0.0, 4.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        right_blue,
+    ));
+    world.add(Quad::new(
+        Point3::new(-2.0, 3.0, 1.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 4.0),
+        upper_orange,
+    ));
+    world.add(Quad::new(
+        Point3::new(-2.0, -3.0, 5.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -4.0),
+        lower_teal,
+    ));
+
+    let mut camera = Camera::new();
+
+    camera.aspect_ratio = 1.0;
+    camera.image_width = 400;
+    camera.samples_per_pixel = 100;
+    camera.max_depth = 50;
+
+    camera.vfov = 80.0;
+    camera.lookfrom = Point3::new(0.0, 0.0, 9.0);
+    camera.lookat = Point3::new(0.0, 0.0, 0.0);
+    camera.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    camera.defocus_angle = 0.0;
+
     camera.init();
 
     camera.render(&world);
