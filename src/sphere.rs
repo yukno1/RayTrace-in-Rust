@@ -55,7 +55,7 @@ impl<'a> Sphere<'a> {
         let theta = f64::acos(-p.y);
         let phi = f64::atan2(-p.z, p.x);
 
-        (phi / (2.0 * PI), theta / PI)
+        (phi / (2.0 * PI) + 0.5, theta / PI)
     }
 }
 
