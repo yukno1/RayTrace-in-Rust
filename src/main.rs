@@ -2,6 +2,7 @@ mod aabb;
 mod bvh;
 mod camera;
 mod color;
+mod constant_medium;
 mod hittable;
 mod hittable_list;
 mod interval;
@@ -21,13 +22,13 @@ use crate::{
     bvh::BVHNode,
     camera::Camera,
     color::Color,
-    hittable::Hittable,
+    constant_medium::ConstantMedium,
     hittable_list::HittableList,
     material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     quad::Quad,
     sphere::Sphere,
     texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture},
-    transform::{RotateY, Translate, rotate_y},
+    transform::{RotateY, Translate},
     utils::{rand_f64, rand_f64_range},
     vec3::{Point3, Vec3},
 };
@@ -567,8 +568,101 @@ fn cornell_box() {
     camera.render(&world);
 }
 
+fn cornell_smoke() {
+    let mut world: HittableList = HittableList::default();
+
+    // Materials
+    let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
+    let green = Arc::new(Lambertian::new(Color::new(0.12, 0.45, 0.15)));
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let light = Arc::new(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0)));
+
+    // Quads
+    world.add(Quad::new(
+        Point3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        green,
+    ));
+    world.add(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        red,
+    ));
+    world.add(Quad::new(
+        Point3::new(343.0, 554.0, 332.0),
+        Vec3::new(-130.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -105.0),
+        light,
+    ));
+    world.add(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        white.clone(),
+    ));
+    world.add(Quad::new(
+        Point3::new(555.0, 555.0, 555.0),
+        Vec3::new(-555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -555.0),
+        white.clone(),
+    ));
+    world.add(Quad::new(
+        Point3::new(0.0, 0.0, 555.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        white.clone(),
+    ));
+
+    let box1 = quad::cube(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 330.0, 165.0),
+        white.clone(),
+    );
+    let box1 = RotateY::rotate_y(box1, 15.0);
+    let box1 = Translate::translate(box1, Vec3::new(265.0, 0.0, 295.0));
+    world.add(ConstantMedium::from_color(
+        box1,
+        0.01,
+        Color::new(1.0, 1.0, 1.0),
+    ));
+
+    let box2 = quad::cube(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 165.0, 165.0),
+        white.clone(),
+    );
+    let box2 = RotateY::rotate_y(box2, -18.0);
+    let box2 = Translate::translate(box2, Vec3::new(130.0, 0.0, 65.0));
+    world.add(ConstantMedium::from_color(
+        box2,
+        0.01,
+        Color::new(0.0, 0.0, 0.0),
+    ));
+
+    let mut camera = Camera::new();
+
+    camera.aspect_ratio = 1.0;
+    camera.image_width = 600;
+    camera.samples_per_pixel = 200;
+    camera.max_depth = 50;
+    camera.background = Color::new(0.0, 0.0, 0.0);
+
+    camera.vfov = 40.0;
+    camera.lookfrom = Point3::new(278.0, 278.0, -800.0);
+    camera.lookat = Point3::new(278.0, 278.0, 0.0);
+    camera.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    camera.defocus_angle = 0.0;
+
+    camera.init();
+
+    camera.render(&world);
+}
+
 fn main() {
-    match 7 {
+    match 8 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),
@@ -576,6 +670,7 @@ fn main() {
         5 => quads(),
         6 => simple_light(),
         7 => cornell_box(),
+        8 => cornell_smoke(),
         _ => {}
     }
 }
