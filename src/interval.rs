@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use std::ops;
+
 #[derive(Clone, Copy)]
 pub struct Interval {
     pub min: f64,
@@ -54,5 +56,19 @@ impl Default for Interval {
     // Default interval is empty
     fn default() -> Self {
         EMPTY_INTERVAL
+    }
+}
+
+impl ops::Add<f64> for Interval {
+    type Output = Self;
+    fn add(self, rhs: f64) -> Self::Output {
+        Self::new(self.min + rhs, self.max + rhs)
+    }
+}
+
+impl ops::Add<Interval> for f64 {
+    type Output = Interval;
+    fn add(self, rhs: Interval) -> Self::Output {
+        rhs + self
     }
 }

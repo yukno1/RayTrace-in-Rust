@@ -1,4 +1,4 @@
-use std::ops::{self, Index};
+use std::ops::{self, Index, IndexMut};
 
 use crate::utils::{rand_f64, rand_f64_range};
 
@@ -116,10 +116,29 @@ impl Index<usize> for Vec3 {
     }
 }
 
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("index out of range"),
+        }
+    }
+}
+
 impl ops::Add for Vec3 {
     type Output = Vec3;
     fn add(self, rhs: Vec3) -> Self::Output {
         Self::Output::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+    }
+}
+
+impl ops::AddAssign for Vec3 {
+    fn add_assign(&mut self, rhs: Vec3) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
     }
 }
 

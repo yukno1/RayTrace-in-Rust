@@ -1,10 +1,12 @@
 // Axis-Aligned Bounding Boxes
 
+use std::ops;
+
 use crate::{
     hittable::Hitbox,
     interval::{EMPTY_INTERVAL, Interval, UNIVERSE_INTERVAL},
     ray::Ray,
-    vec3::Point3,
+    vec3::{Point3, Vec3},
 };
 
 #[derive(Clone, Copy)]
@@ -159,5 +161,19 @@ impl Hitbox for AABB {
 
     fn bounding_box(&self) -> Self {
         *self
+    }
+}
+
+impl ops::Add<Vec3> for AABB {
+    type Output = Self;
+    fn add(self, offset: Vec3) -> Self::Output {
+        Self::new(self.x + offset.x, self.y + offset.y, self.z + offset.z)
+    }
+}
+
+impl ops::Add<AABB> for Vec3 {
+    type Output = AABB;
+    fn add(self, rhs: AABB) -> Self::Output {
+        rhs + self
     }
 }

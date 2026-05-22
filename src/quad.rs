@@ -99,7 +99,7 @@ impl Hittable for Quad {
     }
 }
 
-pub fn r#box(a: Point3, b: Point3, mat: Arc<dyn Material>) -> HittableList {
+pub fn cube(a: Point3, b: Point3, mat: Arc<dyn Material>) -> HittableList {
     // Returns the 3D box (six sides) that contains the two opposite vertices a & b.
     let mut sides = HittableList::default();
 

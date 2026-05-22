@@ -11,6 +11,7 @@ mod ray;
 mod rtw_image;
 mod sphere;
 mod texture;
+mod transform;
 mod utils;
 mod vec3;
 // mod render;
@@ -20,11 +21,13 @@ use crate::{
     bvh::BVHNode,
     camera::Camera,
     color::Color,
+    hittable::Hittable,
     hittable_list::HittableList,
     material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     quad::Quad,
     sphere::Sphere,
     texture::{CheckerTexture, ImageTexture, NoiseTexture, Texture},
+    transform::{RotateY, Translate, rotate_y},
     utils::{rand_f64, rand_f64_range},
     vec3::{Point3, Vec3},
 };
@@ -526,16 +529,23 @@ fn cornell_box() {
         white.clone(),
     ));
 
-    world.add(quad::r#box(
-        Point3::new(130.0, 0.0, 65.0),
-        Point3::new(295.0, 165.0, 230.0),
+    let box1 = quad::cube(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 330.0, 165.0),
         white.clone(),
-    ));
-    world.add(quad::r#box(
-        Point3::new(265.0, 0.0, 295.0),
-        Point3::new(430.0, 330.0, 460.0),
+    );
+    let box1 = RotateY::rotate_y(box1, 15.0);
+    let box1 = Translate::translate(box1, Vec3::new(265.0, 0.0, 295.0));
+    world.add(box1);
+
+    let box2 = quad::cube(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 165.0, 165.0),
         white.clone(),
-    ));
+    );
+    let box2 = RotateY::rotate_y(box2, -18.0);
+    let box2 = Translate::translate(box2, Vec3::new(130.0, 0.0, 65.0));
+    world.add(box2);
 
     let mut camera = Camera::new();
 
