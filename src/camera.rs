@@ -163,12 +163,7 @@ impl Camera {
                 }
                 return color_from_emission;
             }
-            None => {
-                // let unit_direction = ray.direction.unit_vec3();
-                // let a = 0.5 * (unit_direction.y + 1.0);
-                // (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
-                self.background
-            }
+            None => self.background,
         }
     }
 }
