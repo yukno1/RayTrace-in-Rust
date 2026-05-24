@@ -59,6 +59,7 @@ impl Vec3 {
     }
 
     pub fn rand_in_unit_disk() -> Vec3 {
+        // Las Vegas algorithm
         loop {
             let p = Vec3::new(rand_f64_range(-1.0, 1.0), rand_f64_range(-1.0, 1.0), 0.0);
             if p.len_sq() < 1.0 {

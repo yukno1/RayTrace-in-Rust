@@ -552,7 +552,7 @@ fn cornell_box() {
 
     camera.aspect_ratio = 1.0;
     camera.image_width = 600;
-    camera.samples_per_pixel = 200;
+    camera.samples_per_pixel = 64;
     camera.max_depth = 50;
     camera.background = Color::new(0.0, 0.0, 0.0);
 
@@ -783,11 +783,11 @@ fn final_sccene(image_width: usize, samples_per_pixel: usize, max_depth: usize) 
 
     camera.init();
 
-    camera.render_para(&world);
+    camera.render(&world);
 }
 
 fn main() {
-    match 9 {
+    match 7 {
         1 => bouncing_spheres(),
         2 => checkered_spheres(),
         3 => earth(),

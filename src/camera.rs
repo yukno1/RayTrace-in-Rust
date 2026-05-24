@@ -27,11 +27,13 @@ pub struct Camera {
     // private
     image_height: usize,      // rendered image height
     pixel_samples_scale: f64, // color scale factor for a sum of pixel samples
-    centre: Point3,
-    pixel00_loc: Point3, // location of pixel 0,0
-    pixel_delta_u: Vec3, // offset to pixel to the right
-    pixel_delta_v: Vec3, // offset to pixel below
-    u: Vec3,             // camera frame basis vectors
+    sqrt_spp: usize,          // Square root of number of samples per pixel
+    recip_sqrt_spp: f64,      // 1 / sqrt_spp
+    centre: Point3,           // Camera center
+    pixel00_loc: Point3,      // location of pixel 0,0
+    pixel_delta_u: Vec3,      // offset to pixel to the right
+    pixel_delta_v: Vec3,      // offset to pixel below
+    u: Vec3,                  // camera frame basis vectors
     v: Vec3,
     w: Vec3,
     defocus_disk_u: Vec3, // defocus disk horizontal radius
@@ -63,7 +65,9 @@ impl Camera {
         let image_height = (self.image_width as f64 / self.aspect_ratio) as usize;
         self.image_height = if image_height < 1 { 1 } else { image_height };
 
+        self.sqrt_spp = (self.samples_per_pixel as f64).sqrt() as usize;
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
+        self.recip_sqrt_spp = 1.0 / self.sqrt_spp as f64;
 
         self.centre = self.lookfrom;
 
@@ -97,31 +101,7 @@ impl Camera {
         self.defocus_disk_v = defocus_radius * self.v;
     }
 
-    pub fn render(&self, world: &impl Hittable) {
-        let out = std::io::stdout();
-        // render
-        println!(
-            "P3\n{image_width} {image_height}\n255",
-            image_width = self.image_width,
-            image_height = self.image_height
-        );
-
-        for j in 0..self.image_height {
-            eprintln!("\rScanlines remaining: {} ", self.image_height - j);
-            for i in 0..self.image_width {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                for _ in 0..self.samples_per_pixel {
-                    let r = self.get_ray(i, j);
-                    pixel_color += self.ray_color(&r, self.max_depth, world);
-                }
-
-                write_color(&out, self.pixel_samples_scale * pixel_color); // interior mutability of Stdout, so out no need to be mut
-            }
-        }
-        eprintln!("\rDone");
-    }
-
-    pub fn render_para(&self, world: &(impl Hittable + Sync)) {
+    pub fn render(&self, world: &(impl Hittable + Sync)) {
         let stdout = std::io::stdout();
         let mut buf = std::io::BufWriter::new(stdout.lock());
 
@@ -137,7 +117,7 @@ impl Camera {
             .enumerate()
         {
             eprintln!(
-                "Rendering chunk {}/{} (rows {}–{})",
+                "Rendering chunk {}/{} (rows {}-{})",
                 chunk_idx + 1,
                 self.image_height.div_ceil(chunk_size),
                 chunk[0],
@@ -151,9 +131,11 @@ impl Camera {
                     (0..self.image_width)
                         .map(|i| {
                             let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-                            for _ in 0..self.samples_per_pixel {
-                                let r = self.get_ray(i, j);
-                                pixel_color += self.ray_color(&r, self.max_depth, world);
+                            for s_j in 0..self.sqrt_spp {
+                                for s_i in 0..self.sqrt_spp {
+                                    let r = self.get_ray(i, j, s_i, s_j);
+                                    pixel_color += self.ray_color(&r, self.max_depth, world);
+                                }
                             }
                             self.pixel_samples_scale * pixel_color
                         })
@@ -173,10 +155,10 @@ impl Camera {
         eprintln!("\rDone");
     }
 
-    fn get_ray(&self, i: usize, j: usize) -> Ray {
+    fn get_ray(&self, i: usize, j: usize, s_i: usize, s_j: usize) -> Ray {
         // construct a camera ray originating from the defocus disk and directed at a randomly
-        // sampled point around the pixel location i, j.
-        let offset = self.sample_square();
+        // sampled point around the pixel location i, j for stratified sample square s_i, s_j.
+        let offset = self.sample_square_stratified(s_i, s_j);
         let pixel_sample = self.pixel00_loc
             + ((i as f64 + offset.x) * self.pixel_delta_u)
             + ((j as f64 + offset.y) * self.pixel_delta_v);
@@ -188,6 +170,14 @@ impl Camera {
         let ray_direction = pixel_sample - ray_origin;
         let ray_time = rand_f64();
         Ray::new_with_time(ray_origin, ray_direction, ray_time)
+    }
+
+    fn sample_square_stratified(&self, s_i: usize, s_j: usize) -> Vec3 {
+        // Returns the vector to a random point in the square sub-pixel specified by grid
+        // indices s_i and s_j, for an idealized unit square pixel [-.5,-.5] to [+.5,+.5].
+        let px = (s_i as f64 + rand_f64()) * self.recip_sqrt_spp - 0.5;
+        let py = (s_j as f64 + rand_f64()) * self.recip_sqrt_spp - 0.5;
+        Vec3::new(px, py, 0.0)
     }
 
     fn sample_square(&self) -> Vec3 {
