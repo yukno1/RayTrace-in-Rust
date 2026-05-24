@@ -783,7 +783,7 @@ fn final_sccene(image_width: usize, samples_per_pixel: usize, max_depth: usize) 
 
     camera.init();
 
-    camera.render(&world);
+    camera.render_para(&world);
 }
 
 fn main() {

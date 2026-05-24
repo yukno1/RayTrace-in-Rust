@@ -6,7 +6,7 @@ pub mod metal;
 
 use crate::{color::Color, hittable::HitRecord, ray::Ray, vec3::Point3};
 
-pub trait Material {
+pub trait Material: Sync + Send {
     fn scatter(&self, _r_in: &Ray, _rec: &HitRecord) -> Option<(Color, Ray)> {
         // (attenuation, scattered)
         None

@@ -7,7 +7,7 @@ pub mod solid_color;
 
 mod perlin;
 
-pub trait Texture {
+pub trait Texture: Send + Sync {
     fn value(&self, u: f64, v: f64, p: Point3) -> Color;
 }
 

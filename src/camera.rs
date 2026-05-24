@@ -6,6 +6,8 @@ use crate::{
     utils::{degrees_to_radians, rand_f64},
     vec3::{Point3, Vec3},
 };
+use rayon::prelude::*;
+use std::io::Write;
 
 #[derive(Default)]
 pub struct Camera {
@@ -116,6 +118,58 @@ impl Camera {
                 write_color(&out, self.pixel_samples_scale * pixel_color); // interior mutability of Stdout, so out no need to be mut
             }
         }
+        eprintln!("\rDone");
+    }
+
+    pub fn render_para(&self, world: &(impl Hittable + Sync)) {
+        let stdout = std::io::stdout();
+        let mut buf = std::io::BufWriter::new(stdout.lock());
+
+        writeln!(buf, "P3\n{} {}\n255", self.image_width, self.image_height).unwrap();
+
+        let chunk_size = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(4); // one row per thread, tunable
+
+        for (chunk_idx, chunk) in (0..self.image_height)
+            .collect::<Vec<_>>()
+            .chunks(chunk_size)
+            .enumerate()
+        {
+            eprintln!(
+                "Rendering chunk {}/{} (rows {}–{})",
+                chunk_idx + 1,
+                self.image_height.div_ceil(chunk_size),
+                chunk[0],
+                chunk[chunk.len() - 1]
+            );
+
+            // Render all rows in this chunk in parallel, preserving order
+            let rendered_chunk: Vec<Vec<Color>> = chunk
+                .into_par_iter()
+                .map(|&j| {
+                    (0..self.image_width)
+                        .map(|i| {
+                            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                            for _ in 0..self.samples_per_pixel {
+                                let r = self.get_ray(i, j);
+                                pixel_color += self.ray_color(&r, self.max_depth, world);
+                            }
+                            self.pixel_samples_scale * pixel_color
+                        })
+                        .collect()
+                })
+                .collect(); // rayon preserves par_iter order here
+
+            // Flush chunk immediately — no other rows held in memory
+            for row in rendered_chunk {
+                for pixel_color in row {
+                    write_color(&mut buf, pixel_color);
+                }
+            }
+            buf.flush().unwrap();
+        }
+
         eprintln!("\rDone");
     }
 

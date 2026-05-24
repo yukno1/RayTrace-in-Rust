@@ -773,6 +773,7 @@ dependencies = [
  "fastrand",
  "image",
  "pollster",
+ "rayon",
 ]
 
 [[package]]
